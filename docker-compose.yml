@@ -1,13 +1,24 @@
 services:
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.60.0-noble
+    container_name: playwright
+    restart: unless-stopped
+    command: npx -y playwright@1.60.0 run-server --port 3000 --host 0.0.0.0
+
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
     container_name: open-webui
     restart: unless-stopped
+    depends_on:
+      - playwright
     ports:
       - "${PORT:-3000}:8080"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     env_file:
       - .env
+    environment:
+      WEB_LOADER_ENGINE: playwright
+      PLAYWRIGHT_WS_URL: ws://playwright:3000
     volumes:
       - ./data:/app/backend/data
